@@ -4,7 +4,7 @@
   <img src="docs/hot_jupiter_causal_cartoon.svg" alt="Illustration of a star irradiating an inflated hot Jupiter." width="900">
 </p>
 
-Code, data, and manuscript files for the causal-discovery analysis in [docs/Exoplanets_v2.pdf](docs/Exoplanets_v2.pdf).
+Code, data, and manuscript files for paper "Causes of Hot Jupiter Inflation from Causal Discovery" [docs/Exoplanets_v2.pdf](docs/Exoplanets_v2.pdf).
 
 ## Menu
 
