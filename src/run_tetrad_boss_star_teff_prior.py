@@ -1,4 +1,4 @@
-"""Run Tetrad BOSS with configurable restrictions on parents of star_teff."""
+"""Run Tetrad BOSS with configurable causal priors for host-star properties."""
 
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ OUTPUT_DIR = resolve_repo_path(
 VARIABLES = tuple(
     os.environ.get("TETRAD_BOSS_VARIABLES", "mass,radius,star_teff,orbital_period").split(",")
 )
-SCORE = os.environ.get("TETRAD_BOSS_SCORE", "sem_bic")
+SCORE = os.environ.get("TETRAD_BOSS_SCORE", "ffml")
 TARGET_WITH_NO_PARENTS = "star_teff"
 ALLOWED_TARGET_PARENTS = frozenset(
     filter(None, os.environ.get("TETRAD_BOSS_ALLOWED_TARGET_PARENTS", "star_age").split(","))

@@ -1,175 +1,67 @@
 # Causal Hot Jupiter Inflation
 
-<p align="center"><strong>☀️ ~~~ 🪐 ➜ 🔗</strong></p>
+<p align="center">
+  <img src="docs/hot_jupiter_causal_cartoon.svg" alt="AI-generated cartoon of a hot Jupiter inflated by stellar irradiation, with a causal graph showing T_eff and P_orb pointing to R_p." width="900">
+</p>
 
-Code, data, and manuscript assets for the study of hot Jupiter inflation with causal discovery.
+Code, data, and manuscript files for the causal-discovery analysis in `docs/Exoplanets_v2.pdf`.
 
-## Repository layout
+## Files
 
-```text
-Causal-Hot-Jupiter-Inflation/
-├── data/
-│   ├── 20260526_SE_SN.csv
-│   ├── hot_jupiters_20260403.csv
-│   └── hot_jupiters_20260714_age.csv
-├── docs/
-│   └── Exoplanets_v2.pdf
-├── results/
-├── src/
-│   └── run_tetrad_boss_star_teff_prior.py
-├── LICENSE
-└── README.md
-```
+- `docs/Exoplanets_v2.pdf` — paper
+- `data/hot_jupiters_20260403.csv` — main hot-Jupiter sample
+- `data/hot_jupiters_20260714_age.csv` — age-extended sample
+- `data/20260526_SE_SN.csv` — larger catalog export with uncertainties
+- `src/run_tetrad_boss_star_teff_prior.py` — Tetrad BOSS runner
 
-## Included files
-
-- `docs/Exoplanets_v2.pdf` - paper manuscript.
-- `data/hot_jupiters_20260403.csv` - baseline hot-Jupiter table used by default in the script.
-- `data/hot_jupiters_20260714_age.csv` - variant that includes `star_age`.
-- `data/20260526_SE_SN.csv` - larger exoplanet table with measurement uncertainties.
-- `src/run_tetrad_boss_star_teff_prior.py` - causal discovery workflow based on Tetrad BOSS.
-
-## What the script does
-
-The main script:
-
-1. loads a CSV dataset,
-2. selects the requested variables,
-3. standardizes complete cases,
-4. applies causal prior constraints,
-5. runs Tetrad BOSS,
-6. writes graph and summary files into `results/`.
-
-The current default variable set is:
-
-- `mass`
-- `radius`
-- `star_teff`
-- `orbital_period`
-
-Optional derived variables supported by the script:
-
-- `mean_density`
-- `F_inc`
-
-## Python and system dependencies
-
-The uploaded code imports these Python libraries:
-
-- `pandas`
-- `pydot`
-- `pytetrad`
-
-Install them with:
+## Requirements
 
 ```bash
 python -m pip install pandas pydot pytetrad
-```
-
-You also need:
-
-- **Java**: required by Tetrad. Set `JAVA_HOME` to your local JDK installation.
-- **Graphviz**: required so `pydot` can render `.png` and `.pdf` graph outputs.
-
-Example setup:
-
-```bash
 export JAVA_HOME=/path/to/your/jdk
-python -m pip install pandas pydot pytetrad
 ```
 
-If Graphviz is not already installed on your machine, install it with your system package manager before running the script.
+Also install **Graphviz** so `pydot` can write `.png` and `.pdf` graphs.
 
-## Reproducing the uploaded workflow
+## Reproduce the paper setup
 
-From the repository root:
+From `/home/runner/work/Causal-Hot-Jupiter-Inflation/Causal-Hot-Jupiter-Inflation`:
 
 ```bash
 python src/run_tetrad_boss_star_teff_prior.py
 ```
 
-By default this uses:
+The default run matches the paper setup:
 
-- input dataset: `data/hot_jupiters_20260403.csv`
-- output directory: `results/tetrad_boss_star_teff_not_child`
-- score: `sem_bic`
+- dataset: `data/hot_jupiters_20260403.csv`
+- score: `ffml`
+- prior: planet properties do not cause host-star properties
+  - `mass`, `radius`, and `orbital_period` cannot cause `star_teff`
+  - in the age-extended run, `star_age` is also treated as a host-star-side cause
+- outputs: `results/tetrad_boss_star_teff_not_child/`
 
-Expected outputs include:
+Main result from the paper: `R_p` has direct parents `P_orb` and `T_eff`, while no direct `M_p -> R_p` edge is recovered.
 
-- `selected_complete_cases.csv`
-- `selected_complete_cases_standardized.csv`
-- `knowledge.txt`
-- `graph.txt`
-- `graph.dot`
-- `graph.png`
-- `graph.pdf`
-- `adjacency_matrix.csv`
-- `edges.csv`
-- `forbidden_edges.csv`
-- `tetrad_boss_results_summary.json`
-
-## Runtime options
-
-The script is controlled with environment variables.
-
-| Variable | Purpose | Default |
-| --- | --- | --- |
-| `TETRAD_BOSS_INPUT_CSV` | Input dataset path | `data/hot_jupiters_20260403.csv` |
-| `TETRAD_BOSS_OUTPUT_DIR` | Output directory | `results/tetrad_boss_star_teff_not_child` |
-| `TETRAD_BOSS_VARIABLES` | Comma-separated variable list | `mass,radius,star_teff,orbital_period` |
-| `TETRAD_BOSS_SCORE` | Tetrad score choice | `sem_bic` |
-| `TETRAD_BOSS_ALLOWED_TARGET_PARENTS` | Allowed parents of `star_teff` | `star_age` |
-| `TETRAD_BOSS_ROOT_CAUSES` | Variables forbidden from being children | `star_age` |
-
-Supported scores in the uploaded code:
-
-- `sem_bic`
-- `basis_function_bic`
-- `basis_function_bic_fs`
-- `trff_bic`
-- `ffml`
-
-## Example: run with the age dataset
+## Age-extended run
 
 ```bash
-export JAVA_HOME=/path/to/your/jdk
 export TETRAD_BOSS_INPUT_CSV=data/hot_jupiters_20260714_age.csv
 export TETRAD_BOSS_VARIABLES=mass,radius,star_teff,orbital_period,star_age
-export TETRAD_BOSS_ALLOWED_TARGET_PARENTS=star_age
-export TETRAD_BOSS_ROOT_CAUSES=star_age
-
 python src/run_tetrad_boss_star_teff_prior.py
 ```
 
-## Trying the method on your own dataset
+## Use your own dataset
 
-To reuse the workflow with a new CSV file:
-
-1. prepare a CSV table with one row per object and a first column that can serve as an index,
-2. include the variables you want to analyze as numeric columns,
-3. point `TETRAD_BOSS_INPUT_CSV` to that file,
-4. set `TETRAD_BOSS_VARIABLES` to the columns you want to pass into Tetrad,
-5. if you use `F_inc`, also include `star_mass`, `star_teff`, and `orbital_period`,
-6. if you use `mean_density`, also include `mass` and `radius`,
-7. update the prior variables if your dataset uses a different causal assumption.
-
-Example:
+1. Prepare a CSV with one row per planet and numeric columns for the variables you want to analyze.
+2. Set the input path, variable list, and optional output path.
+3. Keep or adjust the host-star prior if your causal assumptions differ.
+4. Run the script.
 
 ```bash
-export JAVA_HOME=/path/to/your/jdk
 export TETRAD_BOSS_INPUT_CSV=/absolute/path/to/your_dataset.csv
-export TETRAD_BOSS_OUTPUT_DIR=results/my_dataset_run
+export TETRAD_BOSS_OUTPUT_DIR=results/my_run
 export TETRAD_BOSS_VARIABLES=mass,radius,star_teff,orbital_period
-export TETRAD_BOSS_ALLOWED_TARGET_PARENTS=
-export TETRAD_BOSS_ROOT_CAUSES=
-
 python src/run_tetrad_boss_star_teff_prior.py
 ```
 
-The script automatically drops rows with missing values among the selected variables, standardizes the retained rows, and writes a machine-readable summary of the run.
-
-## Notes
-
-- Paths can be given as absolute paths or as paths relative to the repository root.
-- Results are not committed by default; they are generated when you run the analysis locally.
-- The manuscript PDF and uploaded datasets are preserved in `docs/` and `data/` for reference and reuse.
+If you include `F_inc` or `mean_density`, your CSV must also contain the columns needed to compute them.
