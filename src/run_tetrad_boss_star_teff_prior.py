@@ -10,14 +10,26 @@ import pandas as pd
 import pydot
 
 
-os.environ.setdefault("JAVA_HOME", "/home/zhengyujia/.local/tetrad-jdk")
-os.environ["PATH"] = f"{os.environ['JAVA_HOME']}/bin:{os.environ['PATH']}"
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def resolve_repo_path(env_var: str, default_relative_path: str) -> Path:
+    """Resolve an optional environment override relative to the repository root."""
+    configured = os.environ.get(env_var)
+    path = Path(configured) if configured else REPO_ROOT / default_relative_path
+    return path if path.is_absolute() else REPO_ROOT / path
+
+
+if java_home := os.environ.get("JAVA_HOME"):
+    os.environ["PATH"] = f"{java_home}/bin:{os.environ['PATH']}"
 
 from pytetrad.tools.TetradSearch import TetradSearch  # noqa: E402
 
 
-INPUT_CSV = Path(os.environ.get("TETRAD_BOSS_INPUT_CSV", "hot_jupiters_20260403.csv"))
-OUTPUT_DIR = Path(os.environ.get("TETRAD_BOSS_OUTPUT_DIR", "results/tetrad_boss_star_teff_not_child"))
+INPUT_CSV = resolve_repo_path("TETRAD_BOSS_INPUT_CSV", "data/hot_jupiters_20260403.csv")
+OUTPUT_DIR = resolve_repo_path(
+    "TETRAD_BOSS_OUTPUT_DIR", "results/tetrad_boss_star_teff_not_child"
+)
 VARIABLES = tuple(
     os.environ.get("TETRAD_BOSS_VARIABLES", "mass,radius,star_teff,orbital_period").split(",")
 )
